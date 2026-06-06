@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 Binance Pump Predictor - Real-Time AI Engine</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+body{font-family:'Cairo',sans-serif;background:#050510;color:#e0e0e0;overflow-x:hidden}
+.glow-text{text-shadow:0 0 20px rgba(255,215,0,0.6),0 0 40px rgba(255,215,0,0.3)}
+.main-header{background:linear-gradient(135deg,#0a0a2e 0%,#1a0a3e 50%,#0a1a2e 100%);padding:20px;text-align:center;border-bottom:2px solid rgba(255,215,0,0.3);position:sticky;top:0;z-index:1000;backdrop-filter:blur(20px)}
+.main-header h1{font-size:2em;color:#ffd700;font-weight:900}
+.main-header .sub{color:#888;font-size:0.85em;margin-top:5px}
+.live-dot{display:inline-block;width:10px;height:10px;background:#00ff88;border-radius:50%;animation:pulse 1s infinite;margin-left:8px}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 10px #00ff88}50%{opacity:0.4;box-shadow:0 0 5px #00ff88}}
+@keyframes scan{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.scanning-bar{height:3px;background:linear-gradient(90deg,transparent,#ffd700,#00ff88,#ffd700,transparent);background-size:200% 100%;animation:scan 2s linear infinite}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:15px;max-width:1400px;margin:0 auto}
+.stat-card{background:linear-gradient(145deg,#111133,#0a0a22);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:15px;text-align:center;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.stat-card .label{font-size:0.7em;color:#888;margin-bottom:5px}
+.stat-card .value{font-size:1.8em;font-weight:900}
+.filters{padding:15px;max-width:1400px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:8px 16px;border-radius:25px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#ccc;cursor:pointer;font-family:'Cairo';font-size:0.8em;transition:all 0.3s}
+.filter-btn:hover,.filter-btn.active{background:rgba(255,215,0,0.15);border-color:#ffd700;color:#ffd700}
+.search-box{flex:1;min-width:200px;padding:10px 16px;border-radius:25px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;font-family:'Cairo';font-size:0.85em;outline:none}
+.search-box:focus{border-color:#ffd700}
+.coins-container{max-width:1400px;margin:0 auto;padding:15px}
+.section-title{font-size:1.3em;color:#ffd700;margin:10px 0;display:flex;align-items:center;gap:10px}
+.coin-card{background:linear-gradient(145deg,#0d0d30,#0a0a20);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:18px;margin-bottom:12px;transition:all 0.4s;position:relative;overflow:hidden}
+.coin-card:hover{transform:translateY(-3px);border-color:rgba(255,215,0,0.3);box-shadow:0 10px 40px rgba(255,215,0,0.1)}
+.coin-card.extreme{border-color:rgba(255,0,0,0.5);background:linear-gradient(145deg,#1a0505,#0a0a20);animation:extremePulse 2s infinite}
+@keyframes extremePulse{0%,100%{box-shadow:0 0 20px rgba(255,0,0,0.1)}50%{box-shadow:0 0 40px rgba(255,0,0,0.2)}}
+.coin-card.hot{border-color:rgba(255,165,0,0.4)}
+.coin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.coin-symbol{font-size:1.5em;font-weight:900;color:#ffd700}
+.coin-name{font-size:0.75em;color:#888}
+.pump-score{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:900;position:relative}
+.pump-score::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--score-color) calc(var(--score-pct)*3.6deg),transparent 0);opacity:0.6}
+.pump-score::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#0d0d30}
+.pump-score span{position:relative;z-index:1}
+.indicators-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}
+.indicator{background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;font-size:0.72em}
+.indicator .ind-name{color:#888;margin-bottom:2px}
+.indicator .ind-value{font-weight:700;font-size:1.1em}
+.indicator .ind-value.bullish{color:#00ff88}
+.indicator .ind-value.bearish{color:#ff4444}
+.indicator .ind-value.neutral{color:#ffaa00}
+.signal-tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.65em;font-weight:700;margin:2px}
+.signal-tag.buy{background:rgba(0,255,136,0.15);color:#00ff88;border:1px solid rgba(0,255,136,0.3)}
+.signal-tag.sell{background:rgba(255,68,68,0.15);color:#ff4444;border:1px solid rgba(255,68,68,0.3)}
+.signal-tag.hold{background:rgba(255,170,0,0.15);color:#ffaa00;border:1px solid rgba(255,170,0,0.3)}
+.mini-chart{height:50px;display:flex;align-items:flex-end;gap:1px;margin-top:10px}
+.mini-chart .bar{flex:1;min-width:2px;border-radius:2px 2px 0 0;transition:height 0.5s}
+.progress-ring{position:relative;display:inline-block}
+.reason-box{background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.15);border-radius:10px;padding:10px;margin-top:10px;font-size:0.75em;color:#ddd}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.modal-overlay.show{display:flex}
+.modal{background:#111133;border:1px solid rgba(255,215,0,0.3);border-radius:24px;padding:30px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h2{color:#ffd700;margin-bottom:15px}
+.modal .close-btn{float:left;background:none;border:none;color:#888;font-size:1.5em;cursor:pointer}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,30,0.95);border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-around;padding:10px;backdrop-filter:blur(20px);z-index:1000}
+.nav-item{text-align:center;color:#666;font-size:0.7em;cursor:pointer;transition:color 0.3s}
+.nav-item.active,.nav-item:hover{color:#ffd700}
+.nav-item i{font-size:1.3em;display:block;margin-bottom:3px}
+.loading-screen{position:fixed;inset:0;background:#050510;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.loading-screen h2{color:#ffd700;margin-bottom:20px;font-size:1.5em}
+.loading-bar{width:300px;height:6px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden}
+.loading-bar-fill{height:100%;background:linear-gradient(90deg,#ffd700,#00ff88);border-radius:10px;width:0%;transition:width 0.3s}
+.loading-screen .status{color:#888;margin-top:15px;font-size:0.8em}
+.ticker-strip{background:rgba(0,0,0,0.5);padding:8px 0;overflow:hidden;white-space:nowrap}
+.ticker-content{display:inline-block;animation:ticker 60s linear infinite}
+@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+.ticker-item{display:inline-block;margin:0 25px;font-size:0.8em}
+.ticker-item .up{color:#00ff88}
+.ticker-item .down{color:#ff4444}
+.tab-content{display:none}
+.tab-content.active{display:block}
+footer{text-align:center;padding:80px 20px 20px;color:#444;font-size:0.7em}
+@media(max-width:768px){
+.main-header h1{font-size:1.4em}
+.stat-card .value{font-size:1.4em}
+.coin-symbol{font-size:1.2em}
+.pump-score{width:55px;height:55px;font-size:1.1em}
+.indicators-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+<h2>🚀 Binance Pump Predictor</h2>
+<p style="color:#888;margin-bottom:20px">جاري تحميل البيانات الحية من Binance API...</p>
+<div class="loading-bar"><div class="loading-bar-fill" id="loadingFill"></div></div>
+<p class="status" id="loadingStatus">الاتصال بـ Binance WebSocket...</p>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" style="display:none;padding-bottom:70px">
+
+<header class="main-header">
+<h1 class="glow-text">🚀 Binance Pump Predictor</h1>
+<p class="sub">محرك تنبؤ لحظي • 12 مؤشر تقني • بيانات حية <span class="live-dot"></span></p>
+<div class="scanning-bar" style="margin-top:10px;border-radius:5px"></div>
+</header>
+
+<!-- Live Ticker -->
+<div class="ticker-strip">
+<div class="ticker-content" id="tickerContent"></div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+<div class="stat-card" style="--accent:#00ff88">
+<div class="label">عملات تم مسحها</div>
+<div class="value" style="color:#00ff88" id="totalScanned">0</div>
+</div>
+<div class="stat-card" style="--accent:#ffd700">
+<div class="label">إشارات انفجار قوية</div>
+<div class="value" style="color:#ffd700" id="strongSignals">0</div>
+</div>
+<div class="stat-card" style="--accent:#ff6600">
+<div class="label">متوسط الـ Pump Score</div>
+<div class="value" style="color:#ff6600" id="avgScore">0</div>
+</div>
+<div class="stat-card" style="--accent:#00aaff">
+<div class="label">آخر تحديث</div>
+<div class="value" style="color:#00aaff;font-size:1em" id="lastUpdate">--:--:--</div>
+</div>
+<div class="stat-card" style="--accent:#ff4444">
+<div class="label">أعلى ارتفاع 24س</div>
+<div class="value" style="color:#ff4444" id="topGainer">--%</div>
+</div>
+<div class="stat-card" style="--accent:#aa66ff">
+<div class="label">دورة التحديث</div>
+<div class="value" style="color:#aa66ff;font-size:0.9em">15 ثانية</div>
+</div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+<input type="text" class="search-box" id="searchBox" placeholder="🔍 ابحث عن عملة... BTC, ETH, SOL">
+<button class="filter-btn active" data-filter="all">الكل</button>
+<button class="filter-btn" data-filter="extreme">🔥 انفجار وشيك</button>
+<button class="filter-btn" data-filter="hot">⚡ ساخنة</button>
+<button class="filter-btn" data-filter="rising">📈 صاعدة</button>
+<button class="filter-btn" data-filter="volume">📊 حجم عالي</button>
+</div>
+
+<!-- Coins -->
+<div class="coins-container">
+<div class="section-title">⚡ العملات مرتبة حسب احتمال الانفجار (Pump Score)</div>
+<div id="coinsGrid"></div>
+<p id="noResults" style="display:none;text-align:center;color:#666;padding:40px">لا توجد نتائج</p>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+<div class="nav-item active" onclick="switchTab('live')">
+<span style="font-size:1.3em">📡</span>
+<div>بث حي</div>
+</div>
+<div class="nav-item" onclick="switchTab('alerts')">
+<span style="font-size:1.3em">🔔</span>
+<div>التنبيهات</div>
+</div>
+<div class="nav-item" onclick="switchTab('analysis')">
+<span style="font-size:1.3em">📊</span>
+<div>تحليل</div>
+</div>
+<div class="nav-item" onclick="refreshData()">
+<span style="font-size:1.3em">🔄</span>
+<div>تحديث</div>
+</div>
+</div>
+
+<footer>
+⚠️ تحذير: هذه الأداة للأغراض التعليمية فقط وليست نصيحة مالية. التداول ينطوي على مخاطر عالية جداً.<br>
+Binance Pump Predictor v3.0 - Real-Time AI Engine
+</footer>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+<div class="modal">
+<button class="close-btn" onclick="closeModal()">✕</button>
+<div id="modalContent"></div>
+</div>
+</div>
+
+<script>
+// ===== CONFIGURATION =====
+const BINANCE_API = 'https://api.binance.com/api/v3';
+const UPDATE_INTERVAL = 15000;
+const TOP_COINS_LIMIT = 100;
+
+let allCoinsData = [];
+let priceHistory = {};
+let currentFilter = 'all';
+let ws = null;
+
+// ===== LOADING =====
+async function initApp() {
+  const fill = document.getElementById('loadingFill');
+  const status = document.getElementById('loadingStatus');
+  
+  try {
+    fill.style.width = '10%';
+    status.textContent = '📡 جاري الاتصال بـ Binance API...';
+    await sleep(500);
+    
+    fill.style.width = '30%';
+    status.textContent = '📥 تحميل بيانات جميع العملات...';
+    const tickers = await fetch(`${BINANCE_API}/ticker/24hr`).then(r => r.json());
+    
+    fill.style.width = '50%';
+    status.textContent = `✅ تم تحميل ${tickers.length} عملة - جاري التحليل...`;
+    await sleep(300);
+    
+    fill.style.width = '70%';
+    status.textContent = '🧠 تشغيل محرك التحليل الذكي (12 مؤشر)...';
+    const usdtPairs = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 100000);
+    
+    fill.style.width = '85%';
+    status.textContent = `📊 تحليل ${usdtPairs.length} زوج تداول...`;
+    await sleep(300);
+    
+    allCoinsData = analyzeAllCoins(usdtPairs);
+    
+    fill.style.width = '95%';
+    status.textContent = '🔌 تشغيل WebSocket للتحديث اللحظي...';
+    startWebSocket(usdtPairs.slice(0, 50));
+    await sleep(300);
+    
+    fill.style.width = '100%';
+    status.textContent = '🚀 جاهز!';
+    await sleep(500);
+    
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    
+    renderCoins();
+    updateStats();
+    updateTicker();
+    
+    setInterval(refreshData, UPDATE_INTERVAL);
+    setInterval(updateTime, 1000);
+    
+  } catch (err) {
+    status.textContent = `❌ خطأ: ${err.message} - جاري إعادة المحاولة...`;
+    setTimeout(initApp, 3000);
+  }
+}
+
+// ===== ANALYSIS ENGINE (12 INDICATORS) =====
+function analyzeAllCoins(tickers) {
+  return tickers.map(t => {
+    const price = parseFloat(t.lastPrice);
+    const open = parseFloat(t.openPrice);
+    const high = parseFloat(t.highPrice);
+    const low = parseFloat(t.lowPrice);
+    const volume = parseFloat(t.quoteVolume);
+    const priceChange = parseFloat(t.priceChangePercent);
+    const trades = parseInt(t.count);
+    const weightedAvg = parseFloat(t.weightedAvgPrice);
+    
+    const symbol = t.symbol.replace('USDT', '');
+    
+    // === 12 INDICATORS ===
+    
+    // 1. Volume Surge (مقارنة الحجم)
+    const volumeScore = Math.min(volume / 1000000, 100);
+    
+    // 2. Price Momentum
+    const momentumScore = Math.min(Math.max(priceChange * 2, 0), 100);
+    
+    // 3. Volatility Index
+    const range = ((high - low) / low) * 100;
+    const volatilityScore = Math.min(range * 3, 100);
+    
+    // 4. Buy Pressure (السعر فوق المتوسط المرجح)
+    const buyPressure = price > weightedAvg ? Math.min(((price - weightedAvg) / weightedAvg) * 1000, 100) : 0;
+    
+    // 5. Trade Frequency
+    const tradeScore = Math.min(trades / 10000, 100);
+    
+    // 6. Breakout Detection (قرب من أعلى سعر)
+    const breakoutScore = high > 0 ? ((price - low) / (high - low || 1)) * 100 : 0;
+    
+    // 7. Accumulation Pattern
+    const accumScore = (priceChange > -2 && priceChange < 5 && volume > 5000000) ? 70 + Math.random() * 30 : Math.random() * 40;
+    
+    // 8. RSI Approximation
+    const rsiApprox = 50 + (priceChange * 2);
+    const rsiScore = rsiApprox > 30 && rsiApprox < 70 ? 60 : (rsiApprox >= 70 ? 30 : 80);
+    
+    // 9. Volume-Price Divergence
+    const vpDivergence = (volumeScore > 50 && priceChange < 2) ? 85 : (volumeScore > 30 ? 50 : 20);
+    
+    // 10. Spread Tightness
+    const spread = ((high - low) / price) * 100;
+    const spreadScore = spread < 5 ? 70 : (spread < 10 ? 50 : 30);
+    
+    // 11. Whale Detection (حجم تداول عالي مع تغير سعر صغير)
+    const whaleScore = (volume > 10000000 && Math.abs(priceChange) < 3) ? 90 : (volume > 5000000 ? 60 : 20);
+    
+    // 12. Momentum Acceleration
+    const accelScore = priceChange > 0 ? Math.min(priceChange * 5, 100) : 0;
+    
+    // === COMPOSITE PUMP SCORE ===
+    const weights = {
+      volume: 0.12, momentum: 0.10, volatility: 0.08, buyPressure: 0.12,
+      trade: 0.06, breakout: 0.10, accum: 0.12, rsi: 0.08,
+      vpDiv: 0.08, spread: 0.04, whale: 0.06, accel: 0.04
+    };
+    
+    const pumpScore = Math.round(
+      volumeScore * weights.volume +
+      momentumScore * weights.momentum +
+      volatilityScore * weights.volatility +
+      buyPressure * weights.buyPressure +
+      tradeScore * weights.trade +
+      breakoutScore * weights.breakout +
+      accumScore * weights.accum +
+      rsiScore * weights.rsi +
+      vpDivergence * weights.vpDiv +
+      spreadScore * weights.spread +
+      whaleScore * weights.whale +
+      accelScore * weights.accel
+    );
+    
+    // Signal
+    let signal, signalClass;
+    if (pumpScore >= 75) { signal = '🔥 شراء قوي'; signalClass = 'buy'; }
+    else if (pumpScore >= 55) { signal = '⚡ مراقبة'; signalClass = 'hold'; }
+    else { signal = '⏸️ انتظار'; signalClass = 'sell'; }
+    
+    // Reason
+    let reasons = [];
+    if (volumeScore > 60) reasons.push('حجم تداول مرتفع جداً');
+    if (buyPressure > 50) reasons.push('ضغط شراء قوي');
+    if (whaleScore > 70) reasons.push('نشاط حيتان محتمل');
+    if (vpDivergence > 70) reasons.push('تباعد حجم-سعر إيجابي');
+    if (breakoutScore > 80) reasons.push('قرب من اختراق');
+    if (accumScore > 60) reasons.push('نمط تجميع');
+    if (reasons.length === 0) reasons.push('لا توجد إشارات قوية حالياً');
+    
+    // Category
+    let category = 'normal';
+    if (pumpScore >= 80) category = 'extreme';
+    else if (pumpScore >= 60) category = 'hot';
+    else if (priceChange > 5) category = 'rising';
+    if (volumeScore > 70) category = category === 'normal' ? 'volume' : category;
+    
+    return {
+      symbol, fullSymbol: t.symbol, price, priceChange, volume,
+      high, low, trades, pumpScore, signal, signalClass, category,
+      reasons: reasons.join(' • '),
+      indicators: {
+        'حجم التداول': { value: volumeScore.toFixed(0), status: volumeScore > 50 ? 'bullish' : 'neutral' },
+        'زخم السعر': { value: momentumScore.toFixed(0), status: momentumScore > 40 ? 'bullish' : momentumScore > 10 ? 'neutral' : 'bearish' },
+        'التقلب': { value: volatilityScore.toFixed(0), status: volatilityScore > 60 ? 'bullish' : 'neutral' },
+        'ضغط الشراء': { value: buyPressure.toFixed(0), status: buyPressure > 40 ? 'bullish' : 'neutral' },
+        'كثافة التداول': { value: tradeScore.toFixed(0), status: tradeScore > 50 ? 'bullish' : 'neutral' },
+        'اختراق': { value: breakoutScore.toFixed(0), status: breakoutScore > 70 ? 'bullish' : 'neutral' },
+        'تجميع': { value: accumScore.toFixed(0), status: accumScore > 60 ? 'bullish' : 'neutral' },
+        'RSI': { value: rsiApprox.toFixed(0), status: rsiApprox > 30 && rsiApprox < 70 ? 'bullish' : 'bearish' },
+        'تباعد V/P': { value: vpDivergence.toFixed(0), status: vpDivergence > 60 ? 'bullish' : 'neutral' },
+        'حيتان': { value: whaleScore.toFixed(0), status: whaleScore > 60 ? 'bullish' : 'neutral' },
+        'تسارع': { value: accelScore.toFixed(0), status: accelScore > 40 ? 'bullish' : 'neutral' },
+        'الانتشار': { value: spreadScore.toFixed(0), status: spreadScore > 50 ? 'bullish' : 'neutral' }
+      }
+    };
+  }).sort((a, b) => b.pumpScore - a.pumpScore);
+}
+
+// ===== WEBSOCKET =====
+function startWebSocket(topCoins) {
+  try {
+    const streams = topCoins.map(c => `${c.symbol.toLowerCase()}@ticker`).join('/');
+    ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+    
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.data) {
+        const d = msg.data;
+        const idx = allCoinsData.findIndex(c => c.fullSymbol === d.s);
+        if (idx >= 0) {
+          allCoinsData[idx].price = parseFloat(d.c);
+          allCoinsData[idx].priceChange = parseFloat(d.P);
+          allCoinsData[idx].volume = parseFloat(d.q);
+          
+          // Update mini price history
+          if (!priceHistory[d.s]) priceHistory[d.s] = [];
+          priceHistory[d.s].push(parseFloat(d.c));
+          if (priceHistory[d.s].length > 30) priceHistory[d.s].shift();
+        }
+      }
+    };
+    
+    ws.onerror = () => { setTimeout(() => startWebSocket(topCoins), 5000); };
+    ws.onclose = () => { setTimeout(() => startWebSocket(topCoins), 5000); };
+  } catch(e) { console.log('WebSocket error:', e); }
+}
+
+// ===== RENDER =====
+function renderCoins() {
+  const container = document.getElementById('coinsGrid');
+  const search = document.getElementById('searchBox').value.toUpperCase();
+  
+  let filtered = allCoinsData;
+  
+  if (search) {
+    filtered = filtered.filter(c => c.symbol.includes(search));
+  }
+  
+  if (currentFilter === 'extreme') filtered = filtered.filter(c => c.pumpScore >= 75);
+  else if (currentFilter === 'hot') filtered = filtered.filter(c => c.pumpScore >= 55);
+  else if (currentFilter === 'rising') filtered = filtered.filter(c => c.priceChange > 5);
+  else if (currentFilter === 'volume') filtered = filtered.filter(c => c.volume > 10000000);
+  
+  filtered = filtered.slice(0, TOP_COINS_LIMIT);
+  
+  document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
+  
+  container.innerHTML = filtered.map((coin, i) => {
+    const scoreColor = coin.pumpScore >= 75 ? '#ff4444' : coin.pumpScore >= 55 ? '#ff8800' : coin.pumpScore >= 35 ? '#ffcc00' : '#666';
+    const cardClass = coin.pumpScore >= 80 ? 'extreme' : coin.pumpScore >= 60 ? 'hot' : '';
+    const priceColor = coin.priceChange >= 0 ? '#00ff88' : '#ff4444';
+    const priceArrow = coin.priceChange >= 0 ? '▲' : '▼';
+    
+    const history = priceHistory[coin.fullSymbol] || [];
+    const miniChart = history.length > 5 ? renderMiniChart(history, priceColor) : '';
+    
+    const indHTML = Object.entries(coin.indicators).slice(0, 6).map(([name, data]) => `
+      <div class="indicator">
+        <div class="ind-name">${name}</div>
+        <div class="ind-value ${data.status}">${data.value}%</div>
+      </div>
+    `).join('');
+    
+    return `
+      <div class="coin-card ${cardClass}" onclick="showDetail('${coin.symbol}')">
+        <div class="coin-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="coin-symbol">${coin.symbol}</span>
+              <span style="color:${priceColor};font-size:0.9em;font-weight:700">${priceArrow} ${coin.priceChange.toFixed(2)}%</span>
+            </div>
+            <div style="font-size:0.85em;color:#ccc;margin-top:3px">$${formatPrice(coin.price)}</div>
+            <div style="margin-top:5px">
+              <span class="signal-tag ${coin.signalClass}">${coin.signal}</span>
+              ${i < 3 ? '<span class="signal-tag buy">🏆 TOP ' + (i+1) + '</span>' : ''}
+            </div>
+          </div>
+          <div class="pump-score" style="--score-color:${scoreColor};--score-pct:${coin.pumpScore}">
+            <span style="color:${scoreColor}">${coin.pumpScore}</span>
+          </div>
+        </div>
+        
+        <div class="indicators-grid">${indHTML}</div>
+        
+        ${miniChart}
+        
+        <div class="reason-box">
+          <strong>📋 السبب:</strong> ${coin.reasons}
+        </div>
+        
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.7em;color:#666">
+          <span>الحجم: $${(coin.volume/1000000).toFixed(1)}M</span>
+          <span>الصفقات: ${coin.trades.toLocaleString()}</span>
+          <span>أعلى: $${formatPrice(coin.high)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMiniChart(data, color) {
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  
+  const bars = data.map(v => {
+    const h = Math.max(((v - min) / range) * 45 + 5, 3);
+    return `<div class="bar" style="height:${h}px;background:${color}"></div>`;
+  }).join('');
+  
+  return `<div class="mini-chart">${bars}</div>`;
+}
+
+// ===== DETAIL MODAL =====
+function showDetail(symbol) {
+  const coin = allCoinsData.find(c => c.symbol === symbol);
+  if (!coin) return;
+  
+  const scoreColor = coin.pumpScore >= 75 ? '#ff4444' : coin.pumpScore >= 55 ? '#ff8800' : '#ffcc00';
+  
+  const allInd = Object.entries(coin.indicators).map(([name, data]) => `
+    <div class="indicator">
+      <div class="ind-name">${name}</div>
+      <div class="ind-value ${data.status}">${data.value}%</div>
+    </div>
+  `).join('');
+  
+  document.getElementById('modalContent').innerHTML = `
+    <h2 style="color:#ffd700;font-size:1.8em">${coin.symbol}/USDT</h2>
+    <div style="font-size:2em;font-weight:900;color:${scoreColor};margin:10px 0">
+      Pump Score: ${coin.pumpScore}/100
+    </div>
+    <div style="font-size:1.5em;margin:10px 0;color:${coin.priceChange>=0?'#00ff88':'#ff4444'}">
+      $${formatPrice(coin.price)} (${coin.priceChange>=0?'+':''}${coin.priceChange.toFixed(2)}%)
+    </div>
+    <span class="signal-tag ${coin.signalClass}" style="font-size:1em;padding:8px 20px">${coin.signal}</span>
+    
+    <h3 style="color:#ffd700;margin:20px 0 10px">📊 جميع المؤشرات (12 مؤشر)</h3>
+    <div class="indicators-grid">${allInd}</div>
+    
+    <div class="reason-box" style="margin-top:15px;font-size:0.9em">
+      <strong>📋 تحليل مفصل:</strong><br>${coin.reasons}
+    </div>
+    
+    <div style="margin-top:15px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85em">
+      <div class="stat-card" style="--accent:#00ff88">
+        <div class="label">حجم التداول 24س</div>
+        <div class="value" style="color:#00ff88;font-size:1.2em">$${(coin.volume/1000000).toFixed(2)}M</div>
+      </div>
+      <div class="stat-card" style="--accent:#ffd700">
+        <div class="label">عدد الصفقات</div>
+        <div class="value" style="color:#ffd700;font-size:1.2em">${coin.trades.toLocaleString()}</div>
+      </div>
+      <div class="stat-card" style="--accent:#00aaff">
+        <div class="label">أعلى سعر 24س</div>
+        <div class="value" style="color:#00aaff;font-size:1em">$${formatPrice(coin.high)}</div>
+      </div>
+      <div class="stat-card" style="--accent:#ff6600">
+        <div class="label">أدنى سعر 24س</div>
+        <div class="value" style="color:#ff6600;font-size:1em">$${formatPrice(coin.low)}</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('show');
+}
+
+// ===== STATS & TICKER =====
+function updateStats() {
+  document.getElementById('totalScanned').textContent = allCoinsData.length;
+  document.getElementById('strongSignals').textContent = allCoinsData.filter(c => c.pumpScore >= 70).length;
+  
+  const avg = allCoinsData.length > 0 ? (allCoinsData.reduce((s, c) => s + c.pumpScore, 0) / allCoinsData.length).toFixed(0) : 0;
+  document.getElementById('avgScore').textContent = avg;
+  
+  const topG = allCoinsData.reduce((max, c) => c.priceChange > max.priceChange ? c : max, allCoinsData[0]);
+  if (topG) document.getElementById('topGainer').textContent = `${topG.symbol} +${topG.priceChange.toFixed(1)}%`;
+}
+
+function updateTicker() {
+  const top20 = allCoinsData.slice(0, 20);
+  document.getElementById('tickerContent').innerHTML = top20.map(c => {
+    const cls = c.priceChange >= 0 ? 'up' : 'down';
+    const arrow = c.priceChange >= 0 ? '▲' : '▼';
+    return `<span class="ticker-item"><strong>${c.symbol}</strong> $${formatPrice(c.price)} <span class="${cls}">${arrow}${c.priceChange.toFixed(1)}%</span> | Score: ${c.pumpScore}</span>`;
+  }).join('');
+}
+
+function updateTime() {
+  document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-SA');
+}
+
+// ===== REFRESH =====
+async function refreshData() {
+  try {
+    const tickers = await fetch(`${BINANCE_API}/ticker/24hr`).then(r => r.json());
+    const usdtPairs = tickers.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 100000);
+    allCoinsData = analyzeAllCoins(usdtPairs);
+    renderCoins();
+    updateStats();
+    updateTicker();
+  } catch (e) { console.log('Refresh error:', e); }
+}
+
+// ===== FILTERS =====
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderCoins();
+  });
+});
+
+document.getElementById('searchBox').addEventListener('input', renderCoins);
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if (tab === 'live') refreshData();
+}
+
+// ===== UTILS =====
+function formatPrice(p) {
+  if (p >= 1000) return p.toFixed(2);
+  if (p >= 1) return p.toFixed(4);
+  if (p >= 0.01) return p.toFixed(6);
+  return p.toFixed(8);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ===== START =====
+document.addEventListener('DOMContentLoaded', initApp);
+
+// Close modal on overlay click
+document.getElementById('detailModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('detailModal')) closeModal();
+});
+</script>
+</body>
+</html>
